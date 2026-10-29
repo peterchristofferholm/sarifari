@@ -9,9 +9,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"sarifari/internal/model"
-	"sarifari/internal/sarif"
-	"sarifari/internal/ui"
+	"github.com/peterchristofferholm/sarifari/internal/model"
+	"github.com/peterchristofferholm/sarifari/internal/sarif"
+	"github.com/peterchristofferholm/sarifari/internal/ui"
 )
 
 func usage(msg string) {

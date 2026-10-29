@@ -3,7 +3,7 @@ package model
 import (
 	"testing"
 
-	"sarifari/internal/sarif"
+	"github.com/peterchristofferholm/sarifari/internal/sarif"
 )
 
 func load(t *testing.T, name string) []*Finding {

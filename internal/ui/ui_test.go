@@ -12,8 +12,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
 
-	"sarifari/internal/model"
-	"sarifari/internal/sarif"
+	"github.com/peterchristofferholm/sarifari/internal/model"
+	"github.com/peterchristofferholm/sarifari/internal/sarif"
 )
 
 func fixture(t *testing.T, name string) ([]*model.Finding, string) {

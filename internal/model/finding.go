@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"sarifari/internal/sarif"
+	"github.com/peterchristofferholm/sarifari/internal/sarif"
 )
 
 const NoLocation = "(no location)"

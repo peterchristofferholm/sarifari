@@ -1,4 +1,4 @@
-module sarifari
+module github.com/peterchristofferholm/sarifari
 
 go 1.27.1
 

@@ -11,8 +11,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
 
-	"sarifari/internal/model"
-	"sarifari/internal/source"
+	"github.com/peterchristofferholm/sarifari/internal/model"
+	"github.com/peterchristofferholm/sarifari/internal/source"
 )
 
 type groupItem model.Group

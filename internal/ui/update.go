@@ -5,9 +5,9 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"sarifari/internal/editor"
-	"sarifari/internal/model"
-	"sarifari/internal/source"
+	"github.com/peterchristofferholm/sarifari/internal/editor"
+	"github.com/peterchristofferholm/sarifari/internal/model"
+	"github.com/peterchristofferholm/sarifari/internal/source"
 )
 
 type sourceLoadedMsg struct {
