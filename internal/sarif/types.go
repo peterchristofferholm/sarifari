@@ -60,4 +60,5 @@ type Location struct {
 			Snippet     Text `json:"snippet"`
 		} `json:"region"`
 	} `json:"physicalLocation"`
+	Message Text `json:"message"`
 }

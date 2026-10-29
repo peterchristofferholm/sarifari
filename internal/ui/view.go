@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -17,7 +18,9 @@ import (
 
 type groupItem model.Group
 
-func (g groupItem) FilterValue() string { return g.Label + " " + g.Key }
+func (g groupItem) FilterValue() string {
+	return g.Label + " " + g.Key + " " + g.Description + " " + model.Group(g).Subject()
+}
 
 type findingItem struct {
 	f      *model.Finding
@@ -25,7 +28,7 @@ type findingItem struct {
 }
 
 func (i findingItem) FilterValue() string {
-	return i.f.Title() + " " + i.f.Path + " " + i.f.Message
+	return i.f.Title() + " " + i.f.Path + " " + i.f.Subject + " " + i.f.Message
 }
 
 // rowBar is the left selection marker, GitHub's blue accent on the active row.
@@ -55,9 +58,9 @@ func (summaryDelegate) Render(w io.Writer, m list.Model, index int, item list.It
 	if sel {
 		label = accentBold.Render(g.Label)
 	}
-	meta := sevLabel(g.Severity)
-	if g.Key != g.Label {
-		meta += " · " + g.Key
+	meta := join(sevLabel(g.Severity), model.Group(g).Subject(), g.Description)
+	if g.Description == "" && g.Key != g.Label {
+		meta = join(meta, g.Key)
 	}
 	writeRow(w, m.Width(), sel, sevIcon(g.Severity)+" "+label, mutedStyle.Render(fmt.Sprint(len(g.Findings))), mutedStyle.Render("  "+meta))
 }
@@ -82,7 +85,7 @@ func (findingDelegate) Render(w io.Writer, m list.Model, index int, item list.It
 	case it.byFile:
 		where = fmt.Sprintf("line %d", f.StartLine)
 	}
-	meta := where + " · " + f.RuleID
+	meta := join(where, f.Subject, f.RuleID)
 	writeRow(w, m.Width(), sel, sevIcon(f.Severity)+" "+title, badge(f.Severity), mutedStyle.Render("  "+meta))
 }
 
@@ -172,7 +175,7 @@ func (m *Model) renderDetail() {
 
 	title := lipgloss.NewStyle().Bold(true).Foreground(cFg).Width(max(10, w-12)).Render(f.Title())
 	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, title, " ", badge(f.Severity)) + "\n")
-	b.WriteString(mutedStyle.Render(location(f)+" · "+f.Tool) + "\n\n")
+	b.WriteString(mutedStyle.Render(join(location(f), f.Subject, f.Tool)) + "\n\n")
 
 	b.WriteString(m.codeBox(f, w) + "\n\n")
 
@@ -185,6 +188,11 @@ func (m *Model) renderDetail() {
 		b.WriteString(lipgloss.NewStyle().Foreground(cAccent).Underline(true).Render(f.Rule.HelpURI) + "\n")
 	}
 	m.vp.SetContent(b.String())
+}
+
+// join joins the non-empty parts with a middle dot.
+func join(parts ...string) string {
+	return strings.Join(slices.DeleteFunc(parts, func(s string) bool { return s == "" }), " · ")
 }
 
 func location(f *model.Finding) string {

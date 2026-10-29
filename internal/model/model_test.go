@@ -16,7 +16,7 @@ func load(t *testing.T, name string) []*Finding {
 }
 
 func TestRuleResolution(t *testing.T) {
-	f := load(t, "ruleindex.sarif")
+	f := load(t, "ruleindex.sarif.json")
 	tests := []struct {
 		i       int
 		id      string
@@ -33,18 +33,18 @@ func TestRuleResolution(t *testing.T) {
 			t.Errorf("finding %d = %+v", tc.i, got)
 		}
 	}
-	n := load(t, "norules.sarif")[0]
+	n := load(t, "norules.sarif.json")[0]
 	if n.Rule != nil || n.RuleID != "a.b.c" || n.RuleName != "c" {
 		t.Errorf("norules: %+v", n)
 	}
 }
 
 func TestSeverityFallback(t *testing.T) {
-	f := load(t, "minimal.sarif")
+	f := load(t, "minimal.sarif.json")
 	if f[2].Severity != "note" {
 		t.Errorf("want rule default note, got %q", f[2].Severity)
 	}
-	if got := load(t, "nolocation.sarif")[0].Severity; got != "note" {
+	if got := load(t, "nolocation.sarif.json")[0].Severity; got != "note" {
 		t.Errorf("result level should win, got %q", got)
 	}
 }
@@ -63,28 +63,28 @@ func TestPathNormalization(t *testing.T) {
 }
 
 func TestNoLocation(t *testing.T) {
-	f := load(t, "nolocation.sarif")[0]
+	f := load(t, "nolocation.sarif.json")[0]
 	if f.HasLocation() || f.Path != NoLocation || f.StartLine != 0 {
 		t.Errorf("%+v", f)
 	}
 }
 
 func TestMultiRun(t *testing.T) {
-	f := load(t, "multirun.sarif")
+	f := load(t, "multirun.sarif.json")
 	if len(f) != 3 || f[0].Tool != "A" || f[2].Tool != "B" {
 		t.Errorf("%+v", f)
 	}
 }
 
 func TestGrouping(t *testing.T) {
-	f := load(t, "minimal.sarif")
+	f := load(t, "minimal.sarif.json")
 	tests := []struct {
 		by   GroupBy
 		keys []string
 	}{
 		{ByRule, []string{"go.lang.security.sqli", "go.lang.best.todo"}},
 		{BySeverity, []string{"error", "note"}},
-		{ByFile, []string{"main.go", "src/db/a.go", "src/db/q.go"}}, // all count 1: key asc
+		{ByFile, []string{"src/db/a.go", "src/db/q.go", "main.go"}}, // all count 1: severity, then key
 		{ByDirectory, []string{"src", "."}},
 	}
 	for _, tc := range tests {
@@ -116,7 +116,7 @@ func TestGrouping(t *testing.T) {
 }
 
 func TestSeverityFilterAffectsCounts(t *testing.T) {
-	f := load(t, "minimal.sarif")
+	f := load(t, "minimal.sarif.json")
 	gs := GroupFindings(f, ByRule, "note")
 	if len(gs) != 1 || len(gs[0].Findings) != 1 {
 		t.Errorf("%+v", gs)
@@ -127,7 +127,7 @@ func TestSeverityFilterAffectsCounts(t *testing.T) {
 }
 
 func TestTitle(t *testing.T) {
-	f := load(t, "minimal.sarif")
+	f := load(t, "minimal.sarif.json")
 	if got := f[0].Title(); got != "sqli" { // short description wins
 		t.Errorf("got %q", got)
 	}
@@ -148,5 +148,25 @@ func TestGroupByCycleAndParse(t *testing.T) {
 	}
 	if _, ok := ParseGroupBy("nope"); ok {
 		t.Error("want parse failure")
+	}
+}
+
+func TestTrivy(t *testing.T) {
+	f := load(t, "trivy.sarif.json")
+	if f[0].Subject != "golang.org/x/sys@v0.38.0" {
+		t.Errorf("subject %q", f[0].Subject)
+	}
+	if f[0].Description() != "" { // only repeats the rule ID
+		t.Errorf("description %q", f[0].Description())
+	}
+	gs := GroupFindings(f, ByRule, "")
+	if gs[0].Key != "CVE-2026-1" { // error before note on a count tie
+		t.Fatalf("order: %v", gs[0].Key)
+	}
+	if gs[0].Description != "x/net: XSS via HTML parsing" || gs[0].Subject() != "golang.org/x/net@v0.38.0" {
+		t.Errorf("%+v", gs[0])
+	}
+	if g := GroupFindings(f, ByFile, "")[0]; g.Subject() != "" {
+		t.Errorf("mixed subjects should be empty, got %q", g.Subject())
 	}
 }

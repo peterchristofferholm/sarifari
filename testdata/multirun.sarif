@@ -1,3 +1,0 @@
-{"version":"2.1.0","runs":[
- {"tool":{"driver":{"name":"A"}},"results":[{"ruleId":"r","message":{"text":"1"}}]},
- {"tool":{"driver":{"name":"B"}},"results":[{"ruleId":"r","message":{"text":"2"}},{"ruleId":"r","message":{"text":"3"}}]}]}

@@ -1,0 +1,44 @@
+{
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "x",
+          "rules": [
+            {
+              "id": "r0"
+            },
+            {
+              "id": "r1",
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleIndex": 1,
+          "message": {
+            "text": "by index"
+          }
+        },
+        {
+          "ruleId": "r0",
+          "message": {
+            "text": "by id"
+          }
+        },
+        {
+          "ruleIndex": 9,
+          "ruleId": "r1",
+          "message": {
+            "text": "bad index falls back to id"
+          }
+        }
+      ]
+    }
+  ]
+}

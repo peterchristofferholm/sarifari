@@ -60,7 +60,7 @@ func press(m tea.Model, keys ...string) tea.Model {
 }
 
 func TestNavigationFlow(t *testing.T) {
-	f, root := fixture(t, "minimal.sarif")
+	f, root := fixture(t, "minimal.sarif.json")
 	var m tea.Model = New(f, Options{Roots: []string{root}, Style: "github-dark"})
 	m, _ = m.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
 
@@ -112,7 +112,7 @@ func TestEmptyAndMissingSource(t *testing.T) {
 		t.Error("empty state")
 	}
 
-	f, _ := fixture(t, "minimal.sarif")
+	f, _ := fixture(t, "minimal.sarif.json")
 	m = New(f, Options{Roots: []string{t.TempDir()}}) // root has no files
 	m, _ = m.Update(tea.WindowSizeMsg{Width: 80, Height: 30})
 	m = press(m, "enter", "enter")
@@ -120,7 +120,7 @@ func TestEmptyAndMissingSource(t *testing.T) {
 		t.Errorf("want fallback notice:\n%s", v)
 	}
 
-	nl, _ := fixture(t, "nolocation.sarif")
+	nl, _ := fixture(t, "nolocation.sarif.json")
 	m = New(nl, Options{Roots: []string{t.TempDir()}})
 	m, _ = m.Update(tea.WindowSizeMsg{Width: 80, Height: 30})
 	m = press(m, "enter", "enter", "e")
@@ -130,7 +130,7 @@ func TestEmptyAndMissingSource(t *testing.T) {
 }
 
 func TestTeatestSmoke(t *testing.T) {
-	f, root := fixture(t, "minimal.sarif")
+	f, root := fixture(t, "minimal.sarif.json")
 	tm := teatest.NewTestModel(t, New(f, Options{Roots: []string{root}, Style: "github-dark"}), teatest.WithInitialTermSize(100, 30))
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
@@ -159,7 +159,7 @@ func TestWrappedAnnotationHasNoBlankRows(t *testing.T) {
 }
 
 func TestDashGoesBackExceptWhileFiltering(t *testing.T) {
-	f, root := fixture(t, "minimal.sarif")
+	f, root := fixture(t, "minimal.sarif.json")
 	var m tea.Model = New(f, Options{Roots: []string{root}, Style: "github"})
 	m, _ = m.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
 	m = press(m, "enter", "/", "-")
@@ -173,5 +173,17 @@ func TestDashGoesBackExceptWhileFiltering(t *testing.T) {
 	m = press(m, "-")
 	if got := m.(Model).screen; got != screenSummary {
 		t.Errorf("'-' should go back, screen = %v", got)
+	}
+}
+
+func TestSummaryShowsDescriptionAndSubject(t *testing.T) {
+	f, root := fixture(t, "trivy.sarif.json")
+	var m tea.Model = New(f, Options{Roots: []string{root}, Style: "github"})
+	m, _ = m.Update(tea.WindowSizeMsg{Width: 120, Height: 30})
+	v := m.View()
+	for _, want := range []string{"Error · golang.org/x/net@v0.38.0 · x/net: XSS via HTML parsing", "golang.org/x/sys@v0.38.0"} {
+		if !strings.Contains(v, want) {
+			t.Errorf("summary missing %q:\n%s", want, v)
+		}
 	}
 }

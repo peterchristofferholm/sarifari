@@ -20,6 +20,7 @@ type Finding struct {
 	EndLine   int
 	EndCol    int
 	Snippet   string
+	Subject   string // the location's own message, e.g. a package@version
 	Tool      string
 	Rule      *sarif.Rule // may be nil
 }
@@ -82,7 +83,8 @@ func newFinding(res *sarif.Result, run *sarif.Run, byID map[string]*sarif.Rule) 
 		f.RuleName = id
 	}
 	if len(res.Locations) > 0 {
-		p := res.Locations[0].Physical
+		loc := res.Locations[0]
+		p := loc.Physical
 		if uri := normalizePath(p.Artifact.URI); uri != "" {
 			f.Path = uri
 			f.StartLine = p.Region.StartLine
@@ -91,6 +93,7 @@ func newFinding(res *sarif.Result, run *sarif.Run, byID map[string]*sarif.Rule) 
 			f.EndCol = p.Region.EndColumn
 			f.Snippet = p.Region.Snippet.Text
 		}
+		f.Subject = strings.TrimPrefix(strings.TrimSpace(loc.Message.Text), f.Path+": ")
 	}
 	return f
 }
@@ -108,13 +111,24 @@ func normalizePath(uri string) string {
 	return uri
 }
 
-// Title is a human-readable alert title: the rule's short description when it
-// is concise, otherwise the rule name with separators turned into spaces.
+// Description is the rule's short description when it is one line and says more
+// than the rule ID, otherwise "".
+func (f *Finding) Description() string {
+	if f.Rule == nil {
+		return ""
+	}
+	t := strings.TrimSpace(f.Rule.ShortDescription.Text)
+	if strings.Contains(t, "\n") || strings.Contains(t, f.RuleID) {
+		return ""
+	}
+	return t
+}
+
+// Title is a human-readable alert title: the description when there is one,
+// otherwise the rule name with separators turned into spaces.
 func (f *Finding) Title() string {
-	if f.Rule != nil {
-		if t := strings.TrimSpace(f.Rule.ShortDescription.Text); t != "" && len(t) <= 100 && !strings.Contains(t, "\n") {
-			return t
-		}
+	if d := f.Description(); d != "" {
+		return d
 	}
 	t := strings.Join(strings.FieldsFunc(f.RuleName, func(r rune) bool { return r == '-' || r == '_' }), " ")
 	if t == "" {

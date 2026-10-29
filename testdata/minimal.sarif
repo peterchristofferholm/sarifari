@@ -1,8 +1,0 @@
-{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"Opengrep OSS","rules":[
- {"id":"go.lang.security.sqli","shortDescription":{"text":"sqli"},"defaultConfiguration":{"level":"error"}},
- {"id":"go.lang.best.todo","defaultConfiguration":{"level":"note"}}]}},
- "results":[
- {"ruleId":"go.lang.security.sqli","level":"error","message":{"text":"bad sql"},"locations":[{"physicalLocation":{"artifactLocation":{"uri":"./src/db/q.go"},"region":{"startLine":10,"startColumn":2,"endLine":10,"endColumn":30,"snippet":{"text":"db.Query(x)"}}}}]},
- {"ruleId":"go.lang.security.sqli","level":"error","message":{"text":"bad sql 2"},"locations":[{"physicalLocation":{"artifactLocation":{"uri":"src/db/a.go"},"region":{"startLine":3}}}]},
- {"ruleId":"go.lang.best.todo","message":{"text":"todo"},"locations":[{"physicalLocation":{"artifactLocation":{"uri":"main.go"},"region":{"startLine":1}}}]}
-]}]}

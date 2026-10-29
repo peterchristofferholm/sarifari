@@ -32,16 +32,29 @@ func (g GroupBy) Cycle(d int) GroupBy {
 }
 
 type Group struct {
-	Key      string
-	Label    string
-	Severity string // highest severity among members (error > warning > note)
-	Findings []*Finding
+	Key         string
+	Label       string
+	Description string // the rule's description, for rule groups
+	Severity    string // highest severity among members (error > warning > note)
+	Findings    []*Finding
+}
+
+// Subject is the location message shared by every finding, or "" if they differ.
+func (g Group) Subject() string {
+	s := g.Findings[0].Subject
+	for _, f := range g.Findings[1:] {
+		if f.Subject != s {
+			return ""
+		}
+	}
+	return s
 }
 
 var sevRank = map[string]int{"error": 3, "warning": 2, "note": 1}
 
 // GroupFindings applies the severity filter (empty = all) and groups the
-// findings. Groups sort by size descending then key; findings by path, line.
+// findings. Groups sort by size and severity, descending, then key; findings by
+// path, line.
 func GroupFindings(findings []*Finding, by GroupBy, sevFilter string) []Group {
 	idx := map[string]int{}
 	var out []Group
@@ -54,7 +67,11 @@ func GroupFindings(findings []*Finding, by GroupBy, sevFilter string) []Group {
 		if !ok {
 			i = len(out)
 			idx[key] = i
-			out = append(out, Group{Key: key, Label: label, Severity: f.Severity})
+			g := Group{Key: key, Label: label, Severity: f.Severity}
+			if by == ByRule {
+				g.Description = f.Description()
+			}
+			out = append(out, g)
 		}
 		g := &out[i]
 		g.Findings = append(g.Findings, f)
@@ -68,7 +85,11 @@ func GroupFindings(findings []*Finding, by GroupBy, sevFilter string) []Group {
 		})
 	}
 	slices.SortStableFunc(out, func(a, b Group) int {
-		return cmp.Or(cmp.Compare(len(b.Findings), len(a.Findings)), cmp.Compare(a.Key, b.Key))
+		return cmp.Or(
+			cmp.Compare(len(b.Findings), len(a.Findings)),
+			cmp.Compare(sevRank[b.Severity], sevRank[a.Severity]),
+			cmp.Compare(a.Key, b.Key),
+		)
 	})
 	return out
 }

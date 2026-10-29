@@ -1,0 +1,82 @@
+{
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Trivy",
+          "rules": [
+            {
+              "id": "CVE-2026-1",
+              "shortDescription": {
+                "text": "x/net: XSS via HTML parsing"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CVE-2026-2",
+              "shortDescription": {
+                "text": "Trivy finding CVE-2026-2"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CVE-2026-2",
+          "ruleIndex": 1,
+          "level": "note",
+          "message": {
+            "text": "Package: golang.org/x/sys"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "go.mod",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "message": {
+                "text": "go.mod: golang.org/x/sys@v0.38.0"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-1",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Package: golang.org/x/net"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "go.mod",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "message": {
+                "text": "go.mod: golang.org/x/net@v0.38.0"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
