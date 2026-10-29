@@ -1,0 +1,42 @@
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  build:
+    desc: Build the binary
+    cmds:
+      - go build ./cmd/sarifari
+
+  check:
+    desc: Vet and test
+    cmds:
+      - go vet ./...
+      - go test ./...
+
+  release:
+    desc: 'Tag and push the next version: task release -- patch|minor|major'
+    vars:
+      BUMP: '{{.CLI_ARGS | default "patch"}}'
+      LAST:
+        sh: git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo v0.0.0
+      NEXT:
+        sh: |
+          echo {{.LAST}} | sed 's/^v//' | awk -F. -v b={{.BUMP}} '
+            b == "major" { print "v" $1+1 ".0.0" }
+            b == "minor" { print "v" $1 "." $2+1 ".0" }
+            b == "patch" { print "v" $1 "." $2 "." $3+1 }'
+    preconditions:
+      - sh: test -n "{{.NEXT}}"
+        msg: 'bump must be patch, minor or major, got "{{.BUMP}}"'
+      - sh: test "$(git branch --show-current)" = main
+        msg: releases are tagged from main
+      - sh: test -z "$(git status --porcelain)"
+        msg: working tree is not clean
+    prompt: 'Release {{.LAST}} -> {{.NEXT}} and push to origin?'
+    cmds:
+      - task: check
+      - git tag -a {{.NEXT}} -m {{.NEXT}}
+      - git push --atomic origin main {{.NEXT}}
