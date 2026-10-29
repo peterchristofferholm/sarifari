@@ -1,0 +1,2 @@
+[tools]
+go = { version = "1.27.1", postinstall = "go install golang.org/x/tools/gopls@latest" }
